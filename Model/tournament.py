@@ -1,6 +1,6 @@
-class Tournoi:
-    def __init__(self, nom, lieu, date_debut, date_fin, nombre_tours=4, tour_actuel= ""):
-        self.nom = nom
+class Tournament:
+    def __init__(self, last_name, lieu, date_debut, date_fin, nombre_tours=4, tour_actuel= ""):
+        self.last_name = last_name
         self.lieu = lieu
         self.date_debut = date_debut
         self.date_fin = date_fin
