@@ -1,10 +1,11 @@
-from Controller.Controllers import PlayerController
+from Controller.Controllers import PlayerController, TournamentController
 from Controller.Controllers import Menu
 
 menu = Menu()
-controller = PlayerController()
+player_controller = PlayerController()
+tournament_controller = TournamentController()
 
-menu.set_gestion_joueurs(controller)
-menu.set_gestion_tournoi(controller)
+menu.set_player_admin(player_controller)
+menu.set_tournament_admin(tournament_controller)
 
 menu.display_principal_menu()

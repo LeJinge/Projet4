@@ -55,6 +55,11 @@ class Views:
     def message_player_not_found():
         print("Joueur non trouvé.")
 
+    @staticmethod
+    def message_tournament_not_found():
+        print("Tournoi non trouvé")
 
-
+    @staticmethod
+    def message_modifie_tournament():
+        print("Tournoi modifié")
 

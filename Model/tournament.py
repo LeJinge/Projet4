@@ -1,11 +1,11 @@
 class Tournament:
-    def __init__(self, last_name, lieu, date_debut, date_fin, nombre_tours=4, tour_actuel= ""):
-        self.last_name = last_name
-        self.lieu = lieu
-        self.date_debut = date_debut
-        self.date_fin = date_fin
-        self.nombre_tours = nombre_tours
-        self.tour_actuel = tour_actuel
-        self.liste_tours = []
-        self.liste_joueurs_enregistres = []
+    def __init__(self, name="", place="", start_date="", end_date="", tours_numbers=4, actual_tour= ""):
+        self.name = name
+        self.place = place
+        self.start_date = start_date
+        self.end_date = end_date
+        self.tours_numbers = tours_numbers
+        self.actual_tour = actual_tour
+        self.list_tours = []
+        self.list_player_save = []
         self.description = ""
