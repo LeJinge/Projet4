@@ -3,6 +3,7 @@ from Model.player import Player
 from Model.tournament import Tournament
 from View.views import Views
 from tinydb.storages import JSONStorage
+import random
 
 
 class Menu:
@@ -186,9 +187,9 @@ class TournamentController:
         new_tournament.place = input("Lieu : ")
         new_tournament.start_date = input("Date de début : ")
         new_tournament.end_date = input("Date de fin : ")
-        new_tournament.tours_numbers = int(input("Nombre de tours : "))
+        new_tournament.rounds_numbers = int(input("Nombre de tours : "))
 
-        for l in range(new_tournament.tours_numbers * 2):
+        for l in range(new_tournament.rounds_numbers * 2):
 
             new_player = PlayerController.create_player(self)
             new_tournament.list_player_save.append(new_player)
@@ -211,7 +212,7 @@ class TournamentController:
                 "place": new_tournament.place,
                 "start_date": new_tournament.start_date,
                 "end_date": new_tournament.end_date,
-                "tours_numbers": new_tournament.tours_numbers,
+                "rounds_numbers": new_tournament.rounds_numbers,
                 "list_player_save": serialized_players
             }
         )
@@ -232,10 +233,10 @@ class TournamentController:
         new_place = input("Lieu : ")
         new_start_date = input("Date de début : ")
         new_end_date = input("Date de fin : ")
-        new_tours_numbers = int(input("Nombre de tour : "))
+        new_rounds_numbers = int(input("Nombre de tour : "))
         new_list_player_save = []
 
-        for l in range(new_tours_numbers * 2):
+        for l in range(new_rounds_numbers * 2):
 
             new_player = PlayerController.create_player(self)
             new_list_player_save.append(new_player)
@@ -257,17 +258,11 @@ class TournamentController:
             "place": new_place,
             "start_date": new_start_date,
             "end_date": new_end_date,
-            "tours_numbers": new_tours_numbers,
+            "rounds_numbers": new_rounds_numbers,
             "list_player_save": serialized_players
         })
 
         Views.message_modifie_tournament()
-
-    # def delete_tournament(self):
-
-    # def continue_create_tournament(self):
-
-    # def start_tournament(self):
 
     def get_user_choice_tournament(self):
 
@@ -281,10 +276,110 @@ class TournamentController:
         if tournament_menu_choice == "3":
             self.delete_tournament()
         if tournament_menu_choice == "4":
-            self.continue_create_tournament()
-        if tournament_menu_choice == "5":
             self.start_tournament()
+        if tournament_menu_choice == "5":
+            self.resume_tournament()
         if tournament_menu_choice == "6":
             return
         else:
             Views.message_non_valid_choice()
+
+    def delete_tournament(self):
+        name_of_tournament_to_delete = input("Entrez le nom du tournoi à supprimer: ")
+
+        tournament_found = self.db_tournament.get(self.TournamentQuery.name == name_of_tournament_to_delete)
+
+        if tournament_found:
+            self.db_tournament.remove(self.TournamentQuery.name == name_of_tournament_to_delete)
+            Views.message_tournament_deleted()
+        else:
+            Views.message_tournament_not_found()
+
+    def get_tournament_by_name(self, name):
+        return self.db_tournament.search(self.TournamentQuery.name == name)[0]
+
+    def start_tournament(self):
+        tournament_name = input("Entrez le nom du tournoi que vous voulez commencer: ")
+
+        # Récupérer les données du tournoi par son nom
+        tournament_data = self.get_tournament_by_name(tournament_name)
+        number_of_rounds = tournament_data['rounds_numbers']
+
+        current_round = tournament_data.get('current_round', 0)
+        current_match = tournament_data.get('current_match', 0)
+
+        # Récupérer tous les joueurs du tournoi à partir de la base de données.
+        players_list = [Player.from_dict(data) for data in tournament_data['list_player_save']]
+
+        for i in range(current_round, number_of_rounds):
+            print(f"\nDébut du tour {i + 1}!")
+            players_list.sort(key=lambda x: x.score, reverse=True)
+
+            matches = self.generate_matches(players_list)
+
+            # Commencer les matchs à partir du match sauvegardé
+            for j, match in enumerate(matches[current_match:], start=current_match):
+                print(f"{match[0].first_name} ({match[0].score}) vs {match[1].first_name} ({match[1].score})")
+
+                while True:
+                    winner_id = input(f"Qui est le vainqueur ? 1. {match[0].first_name} 2. {match[1].first_name} : ")
+
+                    if winner_id == "1":
+                        match[0].score += 1
+                        break
+                    elif winner_id == "2":
+                        match[1].score += 1
+                        break
+                    else:
+                        print("Choix non valide. Veuillez sélectionner le bon numéro.")
+
+                # Sauvegarde après chaque match
+                self.save_tournament(tournament_name, players_list, i + 1, j + 1)
+
+                # Vérifiez si l'utilisateur veut arrêter après le match
+                exit_choice = input("Voulez-vous quitter le tournoi? (Oui/Non): ").lower()
+                if exit_choice == 'oui':
+                    return
+
+            print(f"Fin du tour {i + 1}!\n")
+
+            # Réinitialiser l'index du match pour le prochain tour
+            current_match = 0
+
+    def generate_matches(self, players_list):
+        # Étape 1 : Trier les joueurs en fonction de leurs points.
+        sorted_players = sorted(players_list, key=lambda p: p.score, reverse=True)
+
+        # Étape 2 : Création des matchs en tenant compte des adversaires précédents.
+        matched_players = []
+        matches = []
+
+        for i in range(0, len(sorted_players), 2):
+            player1 = sorted_players[i]
+            if player1 in matched_players:
+                continue
+
+            for j in range(i+1, len(sorted_players)):
+                player2 = sorted_players[j]
+                if player2 not in player1.previous_opponents and player2 not in matched_players:
+                    matches.append((player1, player2))
+                    player1.previous_opponents.append(player2)
+                    player2.previous_opponents.append(player1)
+                    matched_players.extend([player1, player2])
+                    break
+
+        return matches
+
+
+    def save_tournament(self, tournament_name, players_list, current_round, current_match):
+        # Convertir les joueurs en dictionnaires pour la sauvegarde
+        players_data = [player.to_dict() for player in players_list]
+
+        # Mettre à jour les joueurs dans le champ 'players' du tournoi et sauvegarder l'état actuel du round et du match
+        self.db_tournament.update({
+            "name": tournament_name,
+            "list_player_save": players_data,
+            "current_round": current_round,
+            "current_match": current_match
+        }, self.TournamentQuery.name == tournament_name)
+

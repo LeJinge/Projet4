@@ -21,7 +21,10 @@ class Views:
         print("1. Créer un tournoi")
         print("2. Modifier un tournoi")
         print("3. Supprimer un tournoi")
-        print("4. Reprendre la création d'un tournoi")
+        print("4. Commencer un tournoi")
+        print("5. Reprendre un tournoi")
+        print("6. Retour")
+
 
     @staticmethod
     def message_player_exist():
@@ -57,9 +60,13 @@ class Views:
 
     @staticmethod
     def message_tournament_not_found():
-        print("Tournoi non trouvé")
+        print("Tournoi non trouvé.")
 
     @staticmethod
     def message_modifie_tournament():
         print("Tournoi modifié")
+
+    @staticmethod
+    def message_tournament_deleted():
+        print("Tournoi supprimé")
 
