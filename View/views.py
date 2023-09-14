@@ -21,9 +21,8 @@ class Views:
         print("1. Créer un tournoi")
         print("2. Modifier un tournoi")
         print("3. Supprimer un tournoi")
-        print("4. Commencer un tournoi")
-        print("5. Reprendre un tournoi")
-        print("6. Retour")
+        print("4. Commencer/reprendre un tournoi")
+        print("5. Retour")
 
 
     @staticmethod

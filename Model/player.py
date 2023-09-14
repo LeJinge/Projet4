@@ -7,9 +7,6 @@ class Player:
         self.score = 0  # ajout de l'attribut score
         self.previous_opponents = []  # ajout de l'attribut pour suivre les adversaires précédents
 
-    def add_point(self, points):
-        self.point += points
-
     def to_dict(self):
         return {
             'chess_id': self.chess_id,
