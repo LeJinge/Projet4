@@ -184,22 +184,22 @@ class TournamentController:
         self.PlayerQuery = Query()
 
     def get_user_choice_tournament(self):
+
         Views.view_tournament_menu()
         tournament_menu_choice = input("Veuillez faire un choix : ")
 
-        # Utilisation d'un dictionnaire pour mapper les choix
-        choices = {
-            "1": self.create_tournament,
-            "2": self.modify_tournament,
-            "3": self.delete_tournament,
-            "4": self.start_tournament,
-            "5": self.resume_tournament,
-            "6": exit  # Utilisez la fonction exit pour sortir
-        }
-
-        action = choices.get(tournament_menu_choice)
-        if action:
-            action()
+        if tournament_menu_choice == "1":
+            self.create_tournament()
+        if tournament_menu_choice == "2":
+            self.modify_tournament()
+        if tournament_menu_choice == "3":
+            self.delete_tournament()
+        if tournament_menu_choice == "4":
+            self.start_tournament()
+        if tournament_menu_choice == "5":
+            self.resume_tournament()
+        if tournament_menu_choice == "6":
+            return
         else:
             Views.message_non_valid_choice()
 
@@ -405,8 +405,16 @@ class TournamentController:
         # Sérialisez chaque round en un dictionnaire avant de le stocker
         rounds_data = [round_obj.to_dict() for round_obj in tournament.list_tours]
 
-        current_round_index = tournament.current_round - 1
+        # Assurez-vous que les objets Player sont sérialisés
+        for round_data in rounds_data:
+            for match in round_data["matchs"]:
+                # Vérifiez si player1 et player2 ne sont pas déjà des dictionnaires
+                if not isinstance(match["player1"], dict):
+                    match["player1"] = match["player1"].to_dict()
+                if not isinstance(match["player2"], dict):
+                    match["player2"] = match["player2"].to_dict()
 
+        current_round_index = tournament.current_round - 1
         self.db_tournament.update({
             "list_tours": rounds_data,
             "current_round": current_round_index + 1

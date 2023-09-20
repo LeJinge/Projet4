@@ -10,14 +10,17 @@ class Player:
 
     @classmethod
     def from_dict(cls, data):
-        player = cls()
-        player.last_name = data.get("last_name")
-        player.first_name = data.get("first_name")
-        player.birth_date = data.get("birth_date")
-        player.chess_id = data.get("chess_id")
-        player.score = data.get("score", 0)  # Si "score" n'est pas dans data, initialisez à 0 par défaut
-        player.previous_opponents = data.get("previous_opponents", [])  # Si "previous_opponents" n'est pas dans data, initialisez à une liste vide par défaut
+        if not all(key in data for key in ["last_name", "first_name", "birth_date", "chess_id"]):
+            raise ValueError("Missing data to instantiate Player")
 
+        player = cls(
+            last_name=data["last_name"],
+            first_name=data["first_name"],
+            birth_date=data["birth_date"],
+            chess_id=data["chess_id"]
+        )
+        player.score = data.get("score", 0)
+        player.previous_opponents = data.get("previous_opponents", [])
         return player
 
     def to_dict(self):

@@ -14,7 +14,12 @@ class Match:
 
     @classmethod
     def from_dict(cls, data):
-        return Match(**data)
+        player1 = Player.from_dict(data["player1"])
+        player2 = Player.from_dict(data["player2"])
+        match_obj = cls(player1, player2)
+        match_obj.score_player1 = data.get("score_player1", 0)
+        match_obj.score_player2 = data.get("score_player2", 0)
+        return match_obj
 
     def to_dict(self):
         return {
