@@ -4,8 +4,8 @@ from Model.match import Match
 
 
 class Round:
-    def __init__(self):
-        self.name = 1
+    def __init__(self, name=None):
+        self.name = name
         self.matchs = []
         self.date_debut = datetime.now()  # Initialisation automatique à l'instant actuel
         self.date_fin = None

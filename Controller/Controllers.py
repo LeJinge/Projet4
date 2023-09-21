@@ -195,10 +195,8 @@ class TournamentController:
         if tournament_menu_choice == "3":
             self.delete_tournament()
         if tournament_menu_choice == "4":
-            self.start_tournament()
+            self.start_or_resume_tournament()
         if tournament_menu_choice == "5":
-            self.resume_tournament()
-        if tournament_menu_choice == "6":
             return
         else:
             Views.message_non_valid_choice()
@@ -288,114 +286,66 @@ class TournamentController:
     def get_tournament_by_name(self, name):
         return self.db_tournament.search(self.TournamentQuery.name == name)[0]
 
-    def start_tournament(self):
-        # Étape 1: Récupération du nom du tournoi
-        tournament_name = input("Entrez le nom du tournoi que vous voulez commencer: ")
-
-        # Étape 2: Récupération des données du tournoi
-        tournament_data = self.get_tournament_by_name(tournament_name)
-        tournament = Tournament.from_dict(tournament_data)
-
-        # Étape 3: Création du premier round si la liste des tours est vide
-        if not tournament.list_tours:
-            initial_round = self.generate_initial_rounds(tournament)
-            tournament.list_tours.append(initial_round)
-            self.save_tournament(tournament)
-
-        while tournament.current_round < tournament.rounds_numbers:  # Pour chaque tour jusqu'à la fin
-            current_round = tournament.list_tours[tournament.current_round]
-            print(f"\nDébut de {current_round.name}!")
-
-            # Étape 4 & 5 : Déroulement de chaque match du tour actuel
-            for match_obj in current_round.matchs:
-                print(f"{match_obj.player1.first_name} vs {match_obj.player2.first_name}")
-
-                while True:
-                    winner_id = input(
-                        f"Qui est le vainqueur ? 1. {match_obj.player1.first_name} 2. {match_obj.player2.first_name} 3. Match nul : ")
-                    if winner_id in ["1", "2", "3"]:
-                        self.update_and_save(tournament, match_obj, winner_id)
-                        break
-                    else:
-                        print("Choix non valide. Veuillez sélectionner le bon numéro.")
-
-                # Vérifiez si l'utilisateur veut arrêter après le match
-                exit_choice = input("Voulez-vous quitter le tournoi? (Oui/Non): ").lower()
-                if exit_choice in ['oui', 'o', 'y']:
-                    return
-
-            print(f"Fin de {current_round.name}!\n")
-
-            if tournament.current_round + 1 < tournament.rounds_numbers:
-                # Étape 6 & 7: Générer le tour suivant et continuer
-                self.generate_matches(tournament)
-
-            tournament.current_round += 1
-
-        print("Le tournoi est terminé!")
-
-    def generate_initial_rounds(self, tournament: 'Tournament'):
-
-        # Faire une copie superficielle de la liste des joueurs pour éviter de modifier la liste originale
+    def generate_initial_matches(self, tournament):
         players = tournament.list_player_save.copy()
-        random.shuffle(players)  # Mélanger la liste de joueurs pour créer des associations aléatoires
-
-        matched_players = set()
+        random.shuffle(players)
         matches = []
 
-        # Pour chaque match de la ronde
-        for _ in range(len(players) // 2):
+        while players:
             player1 = players.pop()
             player2 = players.pop()
 
             match = Match(player1, player2)
             matches.append(match)
 
-            # Garder une trace des joueurs qui ont déjà été associés
-            matched_players.add(player1)
-            matched_players.add(player2)
-
-            # Mise à jour des adversaires précédents pour chaque joueur
-            player1.previous_opponents.append(player2)
-            player2.previous_opponents.append(player1)
+            player1.previous_opponents.append(player2.chess_id)
+            player2.previous_opponents.append(player1.chess_id)
 
         round_obj = Round()
-        round_obj.name = "Tour 1"
         round_obj.matchs = matches
-
+        round_obj.name = "Tour 1"
         tournament.list_tours.append(round_obj)
-        tournament.current_round += 1
 
-        return round_obj
+        self.save_tournament(tournament)  # Sauvegardez le tournoi après la création des matches
 
-    def generate_matches(tournament: 'Tournament') -> List[Match]:
-        # Étape 1 : Trier les joueurs en fonction de leurs points.
-        sorted_players = sorted(tournament.list_player_save, key=lambda p: p.score, reverse=True)
+        return matches
 
-        # Étape 2 : Création des matchs en tenant compte des adversaires précédents.
-        matched_players = set()
+    def generate_next_matches(self, tournament):
+        # Triez les joueurs par score
+        players = sorted(tournament.list_player_save, key=lambda p: p.score, reverse=True)
         matches = []
+        matched_players = set()
 
-        for player1 in sorted_players:
-            if player1 in matched_players:
+        # Associez les joueurs par paires
+        for i in range(0, len(players), 2):
+            player1 = players[i]
+            player2 = players[i + 1] if i + 1 < len(players) else None
+
+            if not player2:
+                # Si player2 n'existe pas (nombre impair de joueurs), ajoutez un match nul
+                matches.append(Match(player1, None))
                 continue
 
-            for player2 in sorted_players:
-                if player2 == player1 or player2 in matched_players:
-                    continue
-                if player2 not in player1.previous_opponents:
-                    match = Match(player1, player2)
-                    matches.append(match)
-                    player1.previous_opponents.append(player2)
-                    player2.previous_opponents.append(player1)
-                    matched_players.add(player1)
-                    matched_players.add(player2)
-                    break
+            if player2.chess_id in player1.previous_opponents:
+                # Si les joueurs ont déjà été appariés, recherchez le prochain joueur disponible
+                for j in range(i + 2, len(players)):
+                    if players[j].chess_id not in player1.previous_opponents:
+                        # Échangez les joueurs
+                        player2, players[j] = players[j], player2
+                        break
+
+            match = Match(player1, player2)
+            matches.append(match)
+
+            player1.previous_opponents.append(player2.chess_id)
+            player2.previous_opponents.append(player1.chess_id)
 
         round_obj = Round()
         round_obj.matchs = matches
+        round_obj.name = f"Tour {len(tournament.list_tours) + 1}"
         tournament.list_tours.append(round_obj)
-        tournament.current_round += 1
+
+        self.save_tournament(tournament)
 
         return matches
 
@@ -414,11 +364,30 @@ class TournamentController:
                 if not isinstance(match["player2"], dict):
                     match["player2"] = match["player2"].to_dict()
 
-        current_round_index = tournament.current_round - 1
+        # Mise à jour de list_player_save avec les données mises à jour des joueurs
+        updated_players_data = [player.to_dict() for player in tournament.list_player_save]
+
         self.db_tournament.update({
+            "list_player_save": updated_players_data,
             "list_tours": rounds_data,
-            "current_round": current_round_index + 1
+            "current_round": len(tournament.list_tours)
         }, self.TournamentQuery.name == tournament_name)
+
+    def update_and_save(self, tournament, match_obj, winner_id):
+        if winner_id == "1":
+            match_obj.player1.score += 1
+            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 1)
+        elif winner_id == "2":
+            match_obj.player2.score += 1
+            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 1)
+        elif winner_id == "3":  # Match nul
+            match_obj.player1.score += 0.5
+            match_obj.player2.score += 0.5
+            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 0.5)
+            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 0.5)
+
+        match_obj.completed = True  # Marquez le match comme complet
+        self.save_tournament(tournament)
 
     def update_player_score_in_json(self, tournament_name, player_name, score_increment):
         # Récupération des données actuelles
@@ -436,24 +405,9 @@ class TournamentController:
             "list_player_save": players_data
         }, self.TournamentQuery.name == tournament_name)
 
-    # Une fonction pour mettre à jour le score et sauvegarder
-    def update_and_save(self, tournament, match_obj, winner_id):
-        if winner_id == "1":
-            match_obj.player1.score += 1
-            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 1)
-        elif winner_id == "2":
-            match_obj.player2.score += 1
-            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 1)
-        elif winner_id == "3":  # Match nul
-            match_obj.player1.score += 0.5
-            match_obj.player2.score += 0.5
-            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 0.5)
-            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 0.5)
-        self.save_tournament(tournament)
-
-    def resume_tournament(self):
+    def start_or_resume_tournament(self):
         # Étape 1: Récupération du nom du tournoi
-        tournament_name = input("Entrez le nom du tournoi que vous voulez reprendre: ")
+        tournament_name = input("Entrez le nom du tournoi que vous voulez commencer ou reprendre: ")
 
         # Étape 2: Récupération des données du tournoi
         tournament_data = self.get_tournament_by_name(tournament_name)
@@ -463,14 +417,20 @@ class TournamentController:
 
         tournament = Tournament.from_dict(tournament_data)
 
-        while tournament.current_round < tournament.rounds_numbers:
-            current_round = tournament.list_tours[tournament.current_round]
+        # Si le tournoi n'a pas encore commencé, initialisez-le
+        if not tournament.list_tours:
+            self.generate_initial_matches(tournament)
+
+        while tournament.current_round <= tournament.rounds_numbers:
+            current_round = tournament.list_tours[tournament.current_round - 1]
             print(f"\nDébut de {current_round.name}!")
 
-            # Reprendre chaque match du tour actuel
+            if not current_round.matchs:  # Si le tour actuel n'a pas encore de matches, générez-les.
+                self.generate_next_matches(tournament)
+
             for match_obj in current_round.matchs:
-                if match_obj.winner:  # Si le match a déjà un gagnant, passez au suivant
-                    continue
+                if match_obj.completed:
+                    continue  # si le match est déjà terminé, passez au suivant
 
                 print(f"{match_obj.player1.first_name} vs {match_obj.player2.first_name}")
 
@@ -483,20 +443,28 @@ class TournamentController:
                     else:
                         print("Choix non valide. Veuillez sélectionner le bon numéro.")
 
-                # Vérifiez si l'utilisateur veut arrêter après le match
                 exit_choice = input("Voulez-vous quitter le tournoi? (Oui/Non): ").lower()
                 if exit_choice in ['oui', 'o', 'y']:
                     return
 
-            print(f"Fin de {current_round.name}!\n")
+            # Vérification de la fin du tour en cours
+            if all(match.completed for match in current_round.matchs):
+                print(f"Fin de {current_round.name}!\n")
+                tournament.current_round += 1
 
-            if tournament.current_round + 1 < tournament.rounds_numbers:
-                # Générer le tour suivant et continuer
-                self.generate_matches(tournament)
-
-            tournament.current_round += 1
+                # Si ce n'était pas le dernier tour, générez des matches pour le prochain tour
+                if tournament.current_round <= tournament.rounds_numbers:
+                    self.generate_next_matches(tournament)
 
         print("Le tournoi est terminé!")
+
+
+
+
+
+
+
+
 
 
 
