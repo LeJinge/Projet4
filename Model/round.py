@@ -1,5 +1,4 @@
 from datetime import datetime
-from Model.player import Player
 from Model.match import Match
 
 
@@ -58,4 +57,3 @@ class Round:
 
         except (ValueError, TypeError) as e:
             raise ValueError(f"Failed to deserialize the Round object from dict: {e}")
-

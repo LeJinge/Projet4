@@ -1,5 +1,3 @@
-import json
-
 from tinydb import TinyDB, Query
 from Model.player import Player
 from Model.match import Match
@@ -8,7 +6,6 @@ from Model.tournament import Tournament
 from View.views import Views
 from tinydb.storages import JSONStorage
 import random
-from typing import List
 
 
 class Menu:
@@ -16,12 +13,16 @@ class Menu:
     def __init__(self):
         self.player_admin = None
         self.tournament_admin = None
+        self.report_admin = None
 
     def set_player_admin(self, gestion_joueurs):
         self.player_admin = gestion_joueurs
 
     def set_tournament_admin(self, tournament_admin):
         self.tournament_admin = tournament_admin
+
+    def set_report_admin(self, report_admin):
+        self.report_admin = report_admin
 
     @property
     def get_principal_menu_choice(self):
@@ -39,17 +40,22 @@ class Menu:
                 if self.player_admin:
                     self.player_admin.get_user_choice_player()
                 else:
-                    print("Erreur: La gestion des joueurs n'est pas configurée.")
+                    Views.message_error_player()
             elif principal_menu_choice == "2":
                 if self.tournament_admin:
                     self.tournament_admin.get_user_choice_tournament()
                 else:
-                    print("Erreur: La gestion des tournois n'est pas configurée.")
+                    Views.message_error_tournament()
             elif principal_menu_choice == "3":
-                print("Au revoir!")
+                if self.report_admin:
+                    self.report_admin.get_user_choice_report()
+                else:
+                    Views.message_error_tournament()
+            elif principal_menu_choice == "4":
+                Views.message_goodbye()
                 break
             else:
-                print("Choix non reconnu. Veuillez choisir une option valide.")
+                Views.message_non_valid_choice()
 
 
 class PlayerController:
@@ -136,7 +142,7 @@ class PlayerController:
             Views.message_player_not_found()
             return
 
-        print("Entrez les nouvelles informations pour le joueur:")
+        Views.message_new_information_player()
         new_last_name = input("Nom : ")
         new_first_name = input("Prénom : ")
         new_birth_date = input("Date de naissance (format YYYY-MM-DD) : ")
@@ -208,8 +214,8 @@ class TournamentController:
         serialized_players = self.serialize_players(new_tournament.list_player_save)
         self.save_tournament_to_db(new_tournament, serialized_players)
 
-    def get_tournament_details(self, tournament, prompt="Entrez les informations pour le tournoi:"):
-        print(prompt)
+    def get_tournament_details(self, tournament):
+        Views.message_tournament_information()
         tournament.name = input("Nom : ")
         tournament.place = input("Lieu : ")
         tournament.start_date = input("Date de début : ")
@@ -281,7 +287,7 @@ class TournamentController:
         Views.message_tournament_deleted()
 
     def remove_tournament_from_db(self, tournament):
-        self.db_tournament.remove(self.TournamentQuery.name == tournament.name)
+        self.db_tournament.remove(self.TournamentQuery.name == tournament['name'])
 
     def get_tournament_by_name(self, name):
         return self.db_tournament.search(self.TournamentQuery.name == name)[0]
@@ -314,7 +320,7 @@ class TournamentController:
         # Triez les joueurs par score
         players = sorted(tournament.list_player_save, key=lambda p: p.score, reverse=True)
         matches = []
-        matched_players = set()
+        # matched_players = set()
 
         # Associez les joueurs par paires
         for i in range(0, len(players), 2):
@@ -452,26 +458,116 @@ class TournamentController:
                 print(f"Fin de {current_round.name}!\n")
                 tournament.current_round += 1
 
-                # Si ce n'était pas le dernier tour, générez des matches pour le prochain tour
+                # # Si ce n'était pas le dernier tour, générez des matches pour le prochain tour
                 if tournament.current_round <= tournament.rounds_numbers:
                     self.generate_next_matches(tournament)
 
         print("Le tournoi est terminé!")
 
+        # Affichage du classement des participants à la fin du tournoi
+        sorted_players = self.get_sorted_players_by_score(tournament_name)
+        print("\nClassement des participants:")
+        for index, player in enumerate(sorted_players, 1):
+            print(f"{index}. {player['first_name']} {player['last_name']} - Score: {player['score']}")
+
+    def get_sorted_players_by_score(self, tournament_name):
+        tournament_data = self.get_tournament_by_name(tournament_name)
+        players_data = tournament_data['list_player_save']
+
+        # Trier les joueurs en fonction de leur score
+        sorted_players = sorted(players_data, key=lambda x: x['score'], reverse=True)
+
+        return sorted_players
 
 
+class ReportController:
+    def __init__(self):
+        self.db_players = TinyDB('players.json')
+        self.db_tournament = TinyDB('tournament.json')
 
+    def get_user_choice_report(self):
 
+        Views.view_report_menu()
+        report_menu_choice = input("Veuillez faire un choix : ")
 
+        if report_menu_choice == "1":
+            self.list_players_alphabetical()
+        if report_menu_choice == "2":
+            self.list_all_tournaments()
+        if report_menu_choice == "3":
+            self.tournament_details()
+        if report_menu_choice == "4":
+            self.list_tournament_players()
+        if report_menu_choice == "5":
+            self.list_rounds_matches()
+        if report_menu_choice == "6":
+            self.final_ranking()
+        if report_menu_choice == "7":
+            return
+        else:
+            Views.message_non_valid_choice()
 
+    def get_tournament_by_name(self, name):
+        return self.db_tournament.search(self.TournamentQuery.name == name)[0]
 
+    def list_players_alphabetical(self):
+        players = self.db_players.table('_default').all()
+        sorted_players = sorted(players, key=lambda x: x['last_name'])
+        for player in sorted_players:
+            print(f"{player['first_name']} {player['last_name']}")
 
+    def list_all_tournaments(self):
+        tournaments = self.db_tournament.table('_default').all()
+        for tournament in tournaments:
+            print(tournament['name'])
 
+    def tournament_details(self):
+        tournament_name = input("Veuillez entrer le nom du tournoi : ")
 
+        tournament_data = Query()
+        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        if tournament:
+            print(f"Name: {tournament['name']}")
+            print(f"Start Date: {tournament['start_date']}")
+            print(f"End Date: {tournament['end_date']}")
+        else:
+            Views.message_tournament_not_found()
 
+    def list_tournament_players(self):
+        tournament_name = input("Veuillez entrer le nom du tournoi pour voir la liste des joueurs : ")
 
+        tournament_data = Query()
+        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        if tournament:
+            players = sorted(tournament['list_player_save'], key=lambda x: x['last_name'])
+            for player in players:
+                print(f"{player['first_name']} {player['last_name']}")
+        else:
+            Views.message_tournament_not_found()
 
+    def list_rounds_matches(self):
+        tournament_name = input("Veuillez entrer le nom du tournoi pour voir les tours et les matchs : ")
 
+        tournament_data = Query()
+        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        if tournament:
+            for round_ in tournament['list_tours']:
+                print(f"Round Name: {round_['name']}")
+                for match in round_['matchs']:
+                    print(
+                        f"Match: {match['player1']['first_name']} {match['player1']['last_name']} vs {match['player2']['first_name']} {match['player2']['last_name']}")
+        else:
+            Views.message_tournament_not_found()
 
+    def final_ranking(self):
+        tournament_name = input("Veuillez entrer le nom du tournoi pour voir les tours et les matchs : ")
 
+        tournament_data = Query()
+        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        players_data = tournament['list_player_save']
 
+        # Trier les joueurs en fonction de leur score
+        sorted_players = sorted(players_data, key=lambda x: x['score'], reverse=True)
+        print("\nClassement des participants:")
+        for index, player in enumerate(sorted_players, 1):
+            print(f"{index}. {player['first_name']} {player['last_name']} - Score: {player['score']}")

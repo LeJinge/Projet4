@@ -5,7 +5,8 @@ class Views:
         print("\nMenu principal:")
         print("1. Gérer les joueurs")
         print("2. Gérer les tournois")
-        print("3. Quitter")
+        print("3. Rapports")
+        print("4. Quitter")
 
     @staticmethod
     def view_player_menu():
@@ -24,6 +25,16 @@ class Views:
         print("4. Commencer un tournoi")
         print("5. Retour")
 
+    @staticmethod
+    def view_report_menu():
+        print("\nMenu gestion des tournoi:")
+        print("1. Liste des joueurs")
+        print("2. Liste des tournois")
+        print("3. Date d'un tournoi")
+        print("4. Participants d'un tournoi")
+        print("5. Rapport match et tour d'un tournoi")
+        print("6. Classement par tournoi")
+        print("7. Retour")
 
     @staticmethod
     def message_player_exist():
@@ -69,3 +80,22 @@ class Views:
     def message_tournament_deleted():
         print("Tournoi supprimé")
 
+    @staticmethod
+    def message_error_player():
+        print("Erreur: La gestion des joueurs n'est pas configurée.")
+
+    @staticmethod
+    def message_error_tournament():
+        print("Erreur: La gestion des tournois n'est pas configurée.")
+
+    @staticmethod
+    def message_goodbye():
+        print("Au revoir!")
+
+    @staticmethod
+    def message_new_information_player():
+        print("Entrez les nouvelles informations pour le joueur:")
+
+    @staticmethod
+    def message_tournament_information():
+        print("Entrez les informations pour le tournoi:")
