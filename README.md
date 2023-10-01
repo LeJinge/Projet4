@@ -20,7 +20,9 @@ joueurs et la création de rapport pour les tournois terminés
 # Pré-requis
 
 flake8      6.1.0
+
 flake8-html 0.4.3
+
 tinydb      4.8.0
 
 
@@ -64,5 +66,5 @@ Générer un rapport Flake8 :
 Voici la commande à lancer dans le terminal afin de générer un rapport flake8 en format html sans analyser 
 tous les fichiers de l'environnement. 
 
-flake8 src/ app/ --format=html --htmldir=rapport_flake8
+flake8 Controller/ Model/ View/ main.py --format=html --htmldir=rapport_flake8
 
