@@ -40,13 +40,13 @@ toutes les dépendances nécessaires. Vous pouvez le faire en exécutant pip ins
 Windows CMD :
 
  - Ouvrez l'invite de commande CMD.
- - Naviguez vers le répertoire du projet en utilisant la commande cd (par exemple : cd C:...\Desktop\Projet4).
+ - Naviguez vers le répertoire du projet en utilisant la commande cd.
  - Lancez le programme avec "python main.py".
 
 Git Bash :
 
  - Ouvrez Git Bash.
- - Naviguez vers le répertoire du projet en utilisant la commande cd (par exemple : cd /c/Users/jerem/Desktop/Projet4).
+ - Naviguez vers le répertoire du projet en utilisant la commande cd.
  - Lancez le programme avec "python main.py".
 
 Terminal Linux :
