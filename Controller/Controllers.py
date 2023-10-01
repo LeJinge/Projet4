@@ -61,7 +61,8 @@ class Menu:
 class PlayerController:
 
     def __init__(self):
-        self.db_players = TinyDB('players.json', storage=JSONStorage, encoding='utf-8')
+        self.db_players = TinyDB(
+            'players.json', storage=JSONStorage, encoding='utf-8')
         self.table_players = self.db_players.table('players')
         self.PlayerView = Views()
         self.PlayerQuery = Query()
@@ -114,7 +115,8 @@ class PlayerController:
     def delete_player(self):
         nom_a_effacer = input("Entrez le nom du joueur à effacer : ")
         prenom_a_effacer = input("Entrez le prénom du joueur à effacer : ")
-        identifiant_a_effacer = input("Entrez l'Identifiant National d'échec du joueur à effacer : ")
+        identifiant_a_effacer = input(
+            "Entrez l'Identifiant National d'échec du joueur à effacer : ")
 
         removed_count = self.db_players.remove(
             (self.PlayerQuery.last_name == nom_a_effacer) &
@@ -128,9 +130,13 @@ class PlayerController:
             Views.message_player_not_found()
 
     def update_player(self):
-        chess_id = input("Entrez l'Identifiant National d'échec du joueur que vous souhaitez modifier : ")
-        last_name = input("Entrez le nom du joueur que vous souhaitez modifier : ")
-        first_name = input("Entrez le prénom du joueur que vous souhaitez modifier : ")
+        chess_id = input(
+            "Entrez l'Identifiant National "
+            "d'échec du joueur que vous souhaitez modifier : ")
+        last_name = input(
+            "Entrez le nom du joueur que vous souhaitez modifier : ")
+        first_name = input(
+            "Entrez le prénom du joueur que vous souhaitez modifier : ")
 
         player_found = self.db_players.get(
             (self.PlayerQuery.chess_id == chess_id) &
@@ -153,8 +159,9 @@ class PlayerController:
             "first_name": new_first_name,
             "birth_date": new_birth_date,
             "chess_id": new_chess_id
-        }, (self.PlayerQuery.last_name == last_name) & (self.PlayerQuery.first_name == first_name) & (
-                self.PlayerQuery.chess_id == chess_id))
+        }, (self.PlayerQuery.last_name == last_name) &
+           (self.PlayerQuery.first_name == first_name) &
+           (self.PlayerQuery.chess_id == chess_id))
 
         Views.message_modifie_player()
 
@@ -162,12 +169,14 @@ class PlayerController:
 
         # Recherche par identifiant
         if chess_id:
-            joueur_dict = self.db_players.get(self.PlayerQuery.chess_id == chess_id)
+            joueur_dict = \
+                self.db_players.get(self.PlayerQuery.chess_id == chess_id)
 
         # Recherche par nom et prénom
         elif last_name & first_name:
             joueur_dict = self.db_players.get(
-                (self.PlayerQuery.last_name == last_name) & (self.PlayerQuery.first_name == first_name))
+                (self.PlayerQuery.last_name == last_name) &
+                (self.PlayerQuery.first_name == first_name))
 
         if joueur_dict:
             # Convertir le dictionnaire en un objet Joueur
@@ -184,8 +193,10 @@ class PlayerController:
 class TournamentController:
 
     def __init__(self):
-        self.db_tournament = TinyDB('tournament.json', storage=JSONStorage, encoding='utf-8')
-        self.db_players = TinyDB('players.json', storage=JSONStorage, encoding='utf-8')
+        self.db_tournament = TinyDB('tournament.json',
+                                    storage=JSONStorage, encoding='utf-8')
+        self.db_players = TinyDB('players.json',
+                                 storage=JSONStorage, encoding='utf-8')
         self.TournamentQuery = Query()
         self.PlayerQuery = Query()
 
@@ -211,7 +222,8 @@ class TournamentController:
         new_tournament = Tournament()
         self.get_tournament_details(new_tournament)
         self.add_players_to_tournament(new_tournament)
-        serialized_players = self.serialize_players(new_tournament.list_player_save)
+        serialized_players = \
+            self.serialize_players(new_tournament.list_player_save)
         self.save_tournament_to_db(new_tournament, serialized_players)
 
     def get_tournament_details(self, tournament):
@@ -229,8 +241,10 @@ class TournamentController:
             self.save_player_to_db(new_player)
 
     def save_player_to_db(self, player):
-        existing_player = self.db_players.get(self.PlayerQuery.chess_id == player.chess_id)
-        if not existing_player or player.chess_id != existing_player['chess_id']:
+        existing_player = self.db_players.get(
+            self.PlayerQuery.chess_id == player.chess_id)
+        if not existing_player or \
+                player.chess_id != existing_player['chess_id']:
             self.db_players.insert(player.to_dict())
 
     def serialize_players(self, players):
@@ -258,9 +272,12 @@ class TournamentController:
             Views.message_tournament_not_found()
             return
 
-        self.get_tournament_details(tournament_found, "Entrez les nouvelles informations pour le tournoi:")
+        self.get_tournament_details(
+            tournament_found,
+            "Entrez les nouvelles informations pour le tournoi:")
         self.add_players_to_tournament(tournament_found)
-        serialized_players = self.serialize_players(tournament_found.list_player_save)
+        serialized_players = self.serialize_players(
+            tournament_found.list_player_save)
         self.update_tournament_in_db(tournament_found, serialized_players)
         Views.message_modifie_tournament()
 
@@ -287,10 +304,12 @@ class TournamentController:
         Views.message_tournament_deleted()
 
     def remove_tournament_from_db(self, tournament):
-        self.db_tournament.remove(self.TournamentQuery.name == tournament['name'])
+        self.db_tournament.remove(
+            self.TournamentQuery.name == tournament['name'])
 
     def get_tournament_by_name(self, name):
-        return self.db_tournament.search(self.TournamentQuery.name == name)[0]
+        return self.db_tournament.search(
+            self.TournamentQuery.name == name)[0]
 
     def generate_initial_matches(self, tournament):
         players = tournament.list_player_save.copy()
@@ -312,15 +331,15 @@ class TournamentController:
         round_obj.name = "Tour 1"
         tournament.list_tours.append(round_obj)
 
-        self.save_tournament(tournament)  # Sauvegardez le tournoi après la création des matches
+        self.save_tournament(tournament)
 
         return matches
 
     def generate_next_matches(self, tournament):
         # Triez les joueurs par score
-        players = sorted(tournament.list_player_save, key=lambda p: p.score, reverse=True)
+        players = sorted(
+            tournament.list_player_save, key=lambda p: p.score, reverse=True)
         matches = []
-        # matched_players = set()
 
         # Associez les joueurs par paires
         for i in range(0, len(players), 2):
@@ -328,12 +347,10 @@ class TournamentController:
             player2 = players[i + 1] if i + 1 < len(players) else None
 
             if not player2:
-                # Si player2 n'existe pas (nombre impair de joueurs), ajoutez un match nul
                 matches.append(Match(player1, None))
                 continue
 
             if player2.chess_id in player1.previous_opponents:
-                # Si les joueurs ont déjà été appariés, recherchez le prochain joueur disponible
                 for j in range(i + 2, len(players)):
                     if players[j].chess_id not in player1.previous_opponents:
                         # Échangez les joueurs
@@ -359,19 +376,19 @@ class TournamentController:
         tournament_name = tournament.name
 
         # Sérialisez chaque round en un dictionnaire avant de le stocker
-        rounds_data = [round_obj.to_dict() for round_obj in tournament.list_tours]
+        rounds_data = [round_obj.to_dict() for
+                       round_obj in tournament.list_tours]
 
         # Assurez-vous que les objets Player sont sérialisés
         for round_data in rounds_data:
             for match in round_data["matchs"]:
-                # Vérifiez si player1 et player2 ne sont pas déjà des dictionnaires
                 if not isinstance(match["player1"], dict):
                     match["player1"] = match["player1"].to_dict()
                 if not isinstance(match["player2"], dict):
                     match["player2"] = match["player2"].to_dict()
 
-        # Mise à jour de list_player_save avec les données mises à jour des joueurs
-        updated_players_data = [player.to_dict() for player in tournament.list_player_save]
+        updated_players_data = [player.to_dict() for
+                                player in tournament.list_player_save]
 
         self.db_tournament.update({
             "list_player_save": updated_players_data,
@@ -382,20 +399,25 @@ class TournamentController:
     def update_and_save(self, tournament, match_obj, winner_id):
         if winner_id == "1":
             match_obj.player1.score += 1
-            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 1)
+            self.update_player_score_in_json(
+                tournament.name, match_obj.player1.first_name, 1)
         elif winner_id == "2":
             match_obj.player2.score += 1
-            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 1)
+            self.update_player_score_in_json(
+                tournament.name, match_obj.player2.first_name, 1)
         elif winner_id == "3":  # Match nul
             match_obj.player1.score += 0.5
             match_obj.player2.score += 0.5
-            self.update_player_score_in_json(tournament.name, match_obj.player1.first_name, 0.5)
-            self.update_player_score_in_json(tournament.name, match_obj.player2.first_name, 0.5)
+            self.update_player_score_in_json(
+                tournament.name, match_obj.player1.first_name, 0.5)
+            self.update_player_score_in_json(
+                tournament.name, match_obj.player2.first_name, 0.5)
 
         match_obj.completed = True  # Marquez le match comme complet
         self.save_tournament(tournament)
 
-    def update_player_score_in_json(self, tournament_name, player_name, score_increment):
+    def update_player_score_in_json(
+            self, tournament_name, player_name, score_increment):
         # Récupération des données actuelles
         tournament_data = self.get_tournament_by_name(tournament_name)
         players_data = tournament_data['list_player_save']
@@ -413,7 +435,9 @@ class TournamentController:
 
     def start_or_resume_tournament(self):
         # Étape 1: Récupération du nom du tournoi
-        tournament_name = input("Entrez le nom du tournoi que vous voulez commencer ou reprendre: ")
+        tournament_name = input(
+            "Entrez le nom du tournoi que vous voulez commencer ou reprendre: "
+        )
 
         # Étape 2: Récupération des données du tournoi
         tournament_data = self.get_tournament_by_name(tournament_name)
@@ -431,25 +455,30 @@ class TournamentController:
             current_round = tournament.list_tours[tournament.current_round - 1]
             print(f"\nDébut de {current_round.name}!")
 
-            if not current_round.matchs:  # Si le tour actuel n'a pas encore de matches, générez-les.
+            if not current_round.matchs:
                 self.generate_next_matches(tournament)
 
             for match_obj in current_round.matchs:
                 if match_obj.completed:
                     continue  # si le match est déjà terminé, passez au suivant
 
-                print(f"{match_obj.player1.first_name} vs {match_obj.player2.first_name}")
+                print(f"{match_obj.player1.first_name} vs "
+                      f"{match_obj.player2.first_name}")
 
                 while True:
                     winner_id = input(
-                        f"Qui est le vainqueur ? 1. {match_obj.player1.first_name} 2. {match_obj.player2.first_name} 3. Match nul : ")
+                        f"Qui est le vainqueur ? "
+                        f"1. {match_obj.player1.first_name} "
+                        f"2. {match_obj.player2.first_name} "
+                        f"3. Match nul : ")
                     if winner_id in ["1", "2", "3"]:
                         self.update_and_save(tournament, match_obj, winner_id)
                         break
                     else:
-                        print("Choix non valide. Veuillez sélectionner le bon numéro.")
+                        Views.message_non_valid_choice()
 
-                exit_choice = input("Voulez-vous quitter le tournoi? (Oui/Non): ").lower()
+                exit_choice = input(
+                    "Voulez-vous quitter le tournoi? (Oui/Non): ").lower()
                 if exit_choice in ['oui', 'o', 'y']:
                     return
 
@@ -458,7 +487,6 @@ class TournamentController:
                 print(f"Fin de {current_round.name}!\n")
                 tournament.current_round += 1
 
-                # # Si ce n'était pas le dernier tour, générez des matches pour le prochain tour
                 if tournament.current_round <= tournament.rounds_numbers:
                     self.generate_next_matches(tournament)
 
@@ -468,14 +496,16 @@ class TournamentController:
         sorted_players = self.get_sorted_players_by_score(tournament_name)
         print("\nClassement des participants:")
         for index, player in enumerate(sorted_players, 1):
-            print(f"{index}. {player['first_name']} {player['last_name']} - Score: {player['score']}")
+            print(f"{index}. {player['first_name']} "
+                  f"{player['last_name']} - Score: {player['score']}")
 
     def get_sorted_players_by_score(self, tournament_name):
         tournament_data = self.get_tournament_by_name(tournament_name)
         players_data = tournament_data['list_player_save']
 
         # Trier les joueurs en fonction de leur score
-        sorted_players = sorted(players_data, key=lambda x: x['score'], reverse=True)
+        sorted_players = sorted(
+            players_data, key=lambda x: x['score'], reverse=True)
 
         return sorted_players
 
@@ -525,7 +555,12 @@ class ReportController:
         tournament_name = input("Veuillez entrer le nom du tournoi : ")
 
         tournament_data = Query()
-        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        tournament = \
+            self.db_tournament.table(
+                '_default'
+            ).get(
+                tournament_data.name == tournament_name
+            )
         if tournament:
             print(f"Name: {tournament['name']}")
             print(f"Start Date: {tournament['start_date']}")
@@ -534,40 +569,63 @@ class ReportController:
             Views.message_tournament_not_found()
 
     def list_tournament_players(self):
-        tournament_name = input("Veuillez entrer le nom du tournoi pour voir la liste des joueurs : ")
+        tournament_name = input(
+            "Veuillez entrer le nom du tournoi : ")
 
         tournament_data = Query()
-        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        tournament = \
+            self.db_tournament.table(
+                '_default'
+            ).get(
+                tournament_data.name == tournament_name
+            )
         if tournament:
-            players = sorted(tournament['list_player_save'], key=lambda x: x['last_name'])
+            players = sorted(
+                tournament['list_player_save'], key=lambda x: x['last_name'])
             for player in players:
                 print(f"{player['first_name']} {player['last_name']}")
         else:
             Views.message_tournament_not_found()
 
     def list_rounds_matches(self):
-        tournament_name = input("Veuillez entrer le nom du tournoi pour voir les tours et les matchs : ")
+        tournament_name = input(
+            "Veuillez entrer le nom du tournoi : ")
 
         tournament_data = Query()
-        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        tournament = self.db_tournament.table(
+            '_default'
+        ).get(
+            tournament_data.name == tournament_name
+        )
         if tournament:
             for round_ in tournament['list_tours']:
                 print(f"Round Name: {round_['name']}")
                 for match in round_['matchs']:
                     print(
-                        f"Match: {match['player1']['first_name']} {match['player1']['last_name']} vs {match['player2']['first_name']} {match['player2']['last_name']}")
+                        f"Match: {match['player1']['first_name']} "
+                        f"{match['player1']['last_name']} vs "
+                        f"{match['player2']['first_name']} "
+                        f"{match['player2']['last_name']}")
         else:
             Views.message_tournament_not_found()
 
     def final_ranking(self):
-        tournament_name = input("Veuillez entrer le nom du tournoi pour voir les tours et les matchs : ")
+        tournament_name = input("Veuillez entrer le nom du tournoi : ")
 
         tournament_data = Query()
-        tournament = self.db_tournament.table('_default').get(tournament_data.name == tournament_name)
+        tournament = self.db_tournament.table(
+            '_default'
+        ).get(
+            tournament_data.name == tournament_name
+        )
         players_data = tournament['list_player_save']
 
         # Trier les joueurs en fonction de leur score
-        sorted_players = sorted(players_data, key=lambda x: x['score'], reverse=True)
+        sorted_players = sorted(
+            players_data, key=lambda x: x['score'], reverse=True
+        )
         print("\nClassement des participants:")
         for index, player in enumerate(sorted_players, 1):
-            print(f"{index}. {player['first_name']} {player['last_name']} - Score: {player['score']}")
+            print(f"{index}. "
+                  f"{player['first_name']} "
+                  f"{player['last_name']} - Score: {player['score']}")

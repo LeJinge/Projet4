@@ -1,16 +1,24 @@
 class Player:
 
-    def __init__(self, last_name=None, first_name=None, birth_date=None, chess_id=None):
+    def __init__(self,
+                 last_name=None,
+                 first_name=None,
+                 birth_date=None,
+                 chess_id=None):
         self.last_name = last_name
         self.first_name = first_name
         self.birth_date = birth_date
         self.chess_id = chess_id
-        self.score = 0  # initialisation du score à 0 par défaut
-        self.previous_opponents = []  # initialisation de la liste des adversaires précédents vide par défaut
+        self.score = 0
+        self.previous_opponents = []
 
     @classmethod
     def from_dict(cls, data):
-        if not all(key in data for key in ["last_name", "first_name", "birth_date", "chess_id"]):
+        if not all(
+                key in data for key in ["last_name",
+                                        "first_name",
+                                        "birth_date",
+                                        "chess_id"]):
             raise ValueError("Missing data to instantiate Player")
 
         player = cls(
