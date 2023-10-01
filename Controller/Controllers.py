@@ -196,13 +196,13 @@ class TournamentController:
 
         if tournament_menu_choice == "1":
             self.create_tournament()
-        if tournament_menu_choice == "2":
+        elif tournament_menu_choice == "2":
             self.modify_tournament()
-        if tournament_menu_choice == "3":
+        elif tournament_menu_choice == "3":
             self.delete_tournament()
-        if tournament_menu_choice == "4":
+        elif tournament_menu_choice == "4":
             self.start_or_resume_tournament()
-        if tournament_menu_choice == "5":
+        elif tournament_menu_choice == "5":
             return
         else:
             Views.message_non_valid_choice()
@@ -492,17 +492,17 @@ class ReportController:
 
         if report_menu_choice == "1":
             self.list_players_alphabetical()
-        if report_menu_choice == "2":
+        elif report_menu_choice == "2":
             self.list_all_tournaments()
-        if report_menu_choice == "3":
+        elif report_menu_choice == "3":
             self.tournament_details()
-        if report_menu_choice == "4":
+        elif report_menu_choice == "4":
             self.list_tournament_players()
-        if report_menu_choice == "5":
+        elif report_menu_choice == "5":
             self.list_rounds_matches()
-        if report_menu_choice == "6":
+        elif report_menu_choice == "6":
             self.final_ranking()
-        if report_menu_choice == "7":
+        elif report_menu_choice == "7":
             return
         else:
             Views.message_non_valid_choice()
