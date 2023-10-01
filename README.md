@@ -3,61 +3,66 @@
 Ce script permet de gérer la création et le déroulement d'un tournoi d'échec. Il permet également la gestion des 
 joueurs et la création de rapport pour les tournois terminés
 
-## Pour commencer
+# Fontionnalités principales
 
-Entrez ici les instructions pour bien débuter avec votre projet...
+- Gestionnaire de joueurs : Offre des fonctionnalités de création, modification et suppression de joueurs dans la base de données.
+- Gestionnaire de tournoi : Permet la création, la modification et la suppression de tournois. Il est également possible de lancer un tournoi créé.
+- Génération de rapport : Génère des rapports basés sur les données des tournois.
 
-### Pré-requis
+## Technologies utilisées
 
-Ce qu'il est requis pour commencer avec votre projet...
+- tinydb
+- tinydb.storages
+- random
+- typing
+- datetime
 
-- Programme 1
-- Programme 2
-- etc...
+# Pré-requis
 
-### Installation
-
-Les étapes pour installer votre programme....
-
-Dites ce qu'il faut faire...
-
-_exemple_: Executez la commande ``telnet mapscii.me`` pour commencer ensuite [...]
+flake8      6.1.0
+flake8-html 0.4.3
+tinydb      4.8.0
 
 
-Ensuite vous pouvez montrer ce que vous obtenez au final...
+## Installation et configuration
 
-## Démarrage
+### Étapes d'installation
+Téléchargement : Téléchargez le projet à partir de GITHUB en utilsant ce lien 
+https://github.com/LeJinge/Projet4.git.
 
-Dites comment faire pour lancer votre projet
+Installation des dépendances : Avant d'exécuter le programme, assurez-vous d'avoir installé 
+toutes les dépendances nécessaires. Vous pouvez le faire en exécutant pip install -r requirements.txt.
 
-## Fabriqué avec
+### Exécution sur différents terminaux
 
-Entrez les programmes/logiciels/ressources que vous avez utilisé pour développer votre projet
+Windows CMD :
 
-_exemples :_
-* [Materialize.css](http://materializecss.com) - Framework CSS (front-end)
-* [Atom](https://atom.io/) - Editeur de textes
+ - Ouvrez l'invite de commande CMD.
+ - Naviguez vers le répertoire du projet en utilisant la commande cd (par exemple : cd C:...\Desktop\Projet4).
+ - Lancez le programme avec "python main.py".
 
-## Contributing
+Git Bash :
 
-Si vous souhaitez contribuer, lisez le fichier [CONTRIBUTING.md](https://example.org) pour savoir comment le faire.
+ - Ouvrez Git Bash.
+ - Naviguez vers le répertoire du projet en utilisant la commande cd (par exemple : cd /c/Users/jerem/Desktop/Projet4).
+ - Lancez le programme avec "python main.py".
 
-## Versions
-Listez les versions ici 
-_exemple :_
-**Dernière version stable :** 5.0
-**Dernière version :** 5.1
-Liste des versions : [Cliquer pour afficher](https://github.com/your/project-name/tags)
-_(pour le lien mettez simplement l'URL de votre projets suivi de ``/tags``)_
+Terminal Linux :
 
-## Auteurs
-Listez le(s) auteur(s) du projet ici !
-* **Jhon doe** _alias_ [@outout14](https://github.com/outout14)
+ - Ouvrez le terminal.
+ - Naviguez vers le répertoire du projet en utilisant la commande cd.
+ - Lancez le programme avec "python3 main.py".
 
-Lisez la liste des [contributeurs](https://github.com/your/project/contributors) pour voir qui à aidé au projet !
+Terminal MacOS :
 
-_(pour le lien mettez simplement l'URL de votre projet suivi de ``/contirubors``)_
+ - Ouvrez le terminal.
+ - Naviguez vers le répertoire du projet en utilisant la commande cd.
+ - Lancez le programme avec "python3 main.py" ou "main.py", selon votre configuration.
 
-## License
+Générer un rapport Flake8 :
 
-Ce projet est sous licence ``exemple: WTFTPL`` - voir le fichier [LICENSE.md](LICENSE.md) pour plus d'informations
+Voici la commande à lancer dans le terminal afin de générer un rapport flake8 en format html sans analyser 
+tous les fichiers de l'environnement. 
+
+flake8 src/ app/ --format=html --htmldir=rapport_flake8
+
