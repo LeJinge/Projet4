@@ -539,8 +539,8 @@ class ReportController:
     def list_players_alphabetical(self):
         players = self.db_players.table('_default').all()
         sorted_players = sorted(players, key=lambda x: x['last_name'])
-        for player in sorted_players:
-            Views.display_players_alphabetical(sorted_players)
+
+        Views.display_players_alphabetical(sorted_players)
 
     def list_all_tournaments(self):
         tournaments = self.db_tournament.table('_default').all()
@@ -576,8 +576,8 @@ class ReportController:
         if tournament:
             players = sorted(
                 tournament['list_player_save'], key=lambda x: x['last_name'])
-            for player in players:
-                Views.display_tournament_players(players)
+
+            Views.display_tournament_players(players)
         else:
             Views.message_tournament_not_found()
 
