@@ -84,7 +84,7 @@ class PlayerController:
                 })
 
             except Exception as e:
-                print("Erreur lors de l'insertion:", e)
+                Views.insert_error(e)
 
     def get_user_choice_player(self):
 
@@ -442,7 +442,7 @@ class TournamentController:
         # Étape 2: Récupération des données du tournoi
         tournament_data = self.get_tournament_by_name(tournament_name)
         if not tournament_data:
-            print(f"Le tournoi {tournament_name} n'existe pas.")
+            Views.tournament_not_exist(tournament_name)
             return
 
         tournament = Tournament.from_dict(tournament_data)
@@ -453,7 +453,7 @@ class TournamentController:
 
         while tournament.current_round <= tournament.rounds_numbers:
             current_round = tournament.list_tours[tournament.current_round - 1]
-            print(f"\nDébut de {current_round.name}!")
+            Views.debut_turn(current_round.name)
 
             if not current_round.matchs:
                 self.generate_next_matches(tournament)
@@ -462,8 +462,7 @@ class TournamentController:
                 if match_obj.completed:
                     continue  # si le match est déjà terminé, passez au suivant
 
-                print(f"{match_obj.player1.first_name} vs "
-                      f"{match_obj.player2.first_name}")
+                Views.display_match(match_obj.player1.first_name, match_obj.player2.first_name)
 
                 while True:
                     winner_id = input(
@@ -484,20 +483,17 @@ class TournamentController:
 
             # Vérification de la fin du tour en cours
             if all(match.completed for match in current_round.matchs):
-                print(f"Fin de {current_round.name}!\n")
+                Views.end_turn(current_round.name)
                 tournament.current_round += 1
 
                 if tournament.current_round <= tournament.rounds_numbers:
                     self.generate_next_matches(tournament)
 
-        print("Le tournoi est terminé!")
+        Views.end_tournament()
 
         # Affichage du classement des participants à la fin du tournoi
         sorted_players = self.get_sorted_players_by_score(tournament_name)
-        print("\nClassement des participants:")
-        for index, player in enumerate(sorted_players, 1):
-            print(f"{index}. {player['first_name']} "
-                  f"{player['last_name']} - Score: {player['score']}")
+        Views.display_ranking(sorted_players)
 
     def get_sorted_players_by_score(self, tournament_name):
         tournament_data = self.get_tournament_by_name(tournament_name)
@@ -544,12 +540,12 @@ class ReportController:
         players = self.db_players.table('_default').all()
         sorted_players = sorted(players, key=lambda x: x['last_name'])
         for player in sorted_players:
-            print(f"{player['first_name']} {player['last_name']}")
+            Views.display_players_alphabetical(sorted_players)
 
     def list_all_tournaments(self):
         tournaments = self.db_tournament.table('_default').all()
         for tournament in tournaments:
-            print(tournament['name'])
+            Views.display_all_tournament(tournaments)
 
     def tournament_details(self):
         tournament_name = input("Veuillez entrer le nom du tournoi : ")
@@ -562,9 +558,7 @@ class ReportController:
                 tournament_data.name == tournament_name
             )
         if tournament:
-            print(f"Name: {tournament['name']}")
-            print(f"Start Date: {tournament['start_date']}")
-            print(f"End Date: {tournament['end_date']}")
+            Views.display_tournament_details(tournament)
         else:
             Views.message_tournament_not_found()
 
@@ -583,7 +577,7 @@ class ReportController:
             players = sorted(
                 tournament['list_player_save'], key=lambda x: x['last_name'])
             for player in players:
-                print(f"{player['first_name']} {player['last_name']}")
+                Views.display_tournament_players(players)
         else:
             Views.message_tournament_not_found()
 
@@ -598,14 +592,7 @@ class ReportController:
             tournament_data.name == tournament_name
         )
         if tournament:
-            for round_ in tournament['list_tours']:
-                print(f"Round Name: {round_['name']}")
-                for match in round_['matchs']:
-                    print(
-                        f"Match: {match['player1']['first_name']} "
-                        f"{match['player1']['last_name']} vs "
-                        f"{match['player2']['first_name']} "
-                        f"{match['player2']['last_name']}")
+            Views.display_turn_and_round(tournament)
         else:
             Views.message_tournament_not_found()
 
@@ -624,8 +611,4 @@ class ReportController:
         sorted_players = sorted(
             players_data, key=lambda x: x['score'], reverse=True
         )
-        print("\nClassement des participants:")
-        for index, player in enumerate(sorted_players, 1):
-            print(f"{index}. "
-                  f"{player['first_name']} "
-                  f"{player['last_name']} - Score: {player['score']}")
+        Views.display_final_ranking(sorted_players)

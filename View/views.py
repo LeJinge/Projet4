@@ -99,3 +99,74 @@ class Views:
     @staticmethod
     def message_tournament_information():
         print("Entrez les informations pour le tournoi:")
+
+    @staticmethod
+    def insert_error(message):
+        print(f"Erreur lors de l'insertion: {message}")
+
+    @staticmethod
+    def tournament_not_exist(nom):
+        print(f"Le tournoi {nom} n'existe pas.")
+
+    @staticmethod
+    def debut_turn(nom_du_tour):
+        print(f"\nDébut de {nom_du_tour}!")
+
+    @staticmethod
+    def display_match(player1_name, player2_name):
+        print(f"{player1_name} vs {player2_name}")
+
+    @staticmethod
+    def end_turn(nom_du_tour):
+        print(f"Fin de {nom_du_tour}!\n")
+
+    @staticmethod
+    def end_tournament():
+        print("Le tournoi est terminé!")
+
+    @staticmethod
+    def display_ranking(players):
+        print("\nClassement des participants:")
+        for index, player in enumerate(players, 1):
+            print(f"{index}. {player['first_name']} "
+                  f"{player['last_name']} - Score: {player['score']}")
+
+    @staticmethod
+    def display_players_alphabetical(players):
+        for player in players:
+            print(f"{player['first_name']} {player['last_name']}")
+
+    @staticmethod
+    def display_all_tournament(tournaments):
+        for tournament in tournaments:
+            print(tournament['name'])
+
+    @staticmethod
+    def display_tournament_details(tournament):
+        print(f"Name: {tournament['name']}")
+        print(f"Start Date: {tournament['start_date']}")
+        print(f"End Date: {tournament['end_date']}")
+
+    @staticmethod
+    def display_tournament_players(players):
+        for player in players:
+            print(f"{player['first_name']} {player['last_name']}")
+
+    @staticmethod
+    def display_turn_and_round(tournament):
+        for round_ in tournament['list_tours']:
+            print(f"Round Name: {round_['name']}")
+            for match in round_['matchs']:
+                print(
+                    f"Match: {match['player1']['first_name']} "
+                    f"{match['player1']['last_name']} vs "
+                    f"{match['player2']['first_name']} "
+                    f"{match['player2']['last_name']}")
+
+    @staticmethod
+    def display_final_ranking(players):
+        print("\nClassement des participants:")
+        for index, player in enumerate(players, 1):
+            print(f"{index}. "
+                  f"{player['first_name']} "
+                  f"{player['last_name']} - Score: {player['score']}")
